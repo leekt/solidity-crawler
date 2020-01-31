@@ -1,0 +1,32 @@
+{
+  "name": "solidity-crawler",
+  "version": "1.0.0",
+  "description": "solidity crawler to download all smart contracts",
+  "main": "index.js",
+  "scripts": {
+    "download": "node getContracts.js",
+    "split" : "node splitFiles.js",
+    "monitor" : "./count.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leekt216/solidity-crawler.git"
+  },
+  "keywords": [
+    "solidity",
+    "smart-contract"
+  ],
+  "author": "leekt216@gmail.com",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/leekt216/solidity-crawler/issues"
+  },
+  "homepage": "https://github.com/leekt216/solidity-crawler#readme",
+  "dependencies": {
+    "async": "^3.1.1",
+    "axios": "^0.19.2",
+    "csv-parse": "^4.8.5",
+    "fast-csv": "^4.0.2",
+    "web3": "^1.2.5-rc.0"
+  }
+}
