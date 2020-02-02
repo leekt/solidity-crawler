@@ -4,9 +4,9 @@
   "description": "solidity crawler to download all smart contracts",
   "main": "index.js",
   "scripts": {
-    "download": "node getContracts.js",
-    "split" : "node splitFiles.js",
-    "monitor" : "./count.sh"
+    "download": "node --max-old-space-size=8192 getContracts.js",
+    "split": "node splitFiles.js",
+    "monitor": "./scripts/count.sh"
   },
   "repository": {
     "type": "git",

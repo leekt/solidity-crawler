@@ -4,15 +4,8 @@ var fs = require('fs');
 const csv = require('fast-csv');
 const path = require('path');
 
-var queue = [];
-
-function enqueue(address) {
-  queue.push(address);
-}
-
-function pop() {
-  return queue.shift();
-}
+var status = [];
+var results = [];
 
 function getUrl(address) {
   return `https://api.etherscan.io/api?module=contract&action=getsourcecode&address=${address}`
@@ -45,27 +38,63 @@ function saveToSolidity(address, code) {
   });
 }
 
+function saveResult() {
+  const write = fs.createWriteStream(path.resolve(__dirname, 'results.csv'));
+  csv.writeToStream(write, results);
+}
+
 async function download(){
-  await fs.createReadStream(path.resolve(__dirname, 'addresses.csv'))
-  .pipe(csv.parse({ headers: true }))
+  const stream = fs.createReadStream(path.resolve(__dirname, 'addresses.csv'))
+  //.pipe(csv.parse({ headers: true }))
+  csv.parseStream(stream, {headers: true})
   .on('error', error => console.error(error))
-  .on('data', async(row) => {
-    await isVerified(row.receipt_contract_address)
-    .catch(function (err){
-      enqueue(row.receipt_contract_address);
-    })
-    .then((res) =>{
-      console.log(res);
-      if(res.status) {
-        saveToSolidity(row.receipt_contract_address, res.code);
-      }
+  .on('data', (row) => {
+    status.push({
+      address : row.receipt_contract_address,
+      status : "pending"
     });
   })
-  .on('end', rowCount =>{
-    console.log(`Parsed ${rowCount} rows`)
-    console.log(`Failed for ${queue.length} contracts, Retrying...`);
+  .on('end', async (rowCount) =>{
+    console.log(`Parsed ${rowCount} rows`);
+    for(var i=0; i<=status.length/1000; i++){
+      const sub_status = status.slice(i*1000, (i+1)*1000);
+      console.log(`Downloading ${i*1000} ~ ${(i+1)*1000 - 1}`)
+      const pr = sub_status.map((x,index) => {
+        return isVerified(x.address).
+          catch(function (err) {
+            return {
+              status: null
+            }
+          })
+          .then((res) =>{
+            if(res.status == null) {
+              return [
+                x.address,
+                "failed"
+              ]
+            }
+            else if (res.status == false) {
+              return [
+                x.address,
+                "N/A"
+              ]
+            }
+            else {
+              console.log(`Downloading ${x.address}`)
+              saveToSolidity(x.address, res.code);
+              return [
+                x.address,
+                "downloaded"
+              ]
+            }
+          })
+      });
+      await Promise.all(pr).then(values => {
+        values.forEach(x=>results.push(x));
+      });
+    }
+    saveResult();
   });
-
 }
 
 download();
