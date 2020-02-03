@@ -5,8 +5,10 @@
   "main": "index.js",
   "scripts": {
     "download": "node --max-old-space-size=8192 getContracts.js",
+    "retry": "node --max-old-space-size=8192 retryGetContracts.js",
     "split": "node splitFiles.js",
-    "monitor": "./scripts/count.sh"
+    "monitor": "./scripts/count.sh",
+    "archive": "./scripts/move.sh"
   },
   "repository": {
     "type": "git",
